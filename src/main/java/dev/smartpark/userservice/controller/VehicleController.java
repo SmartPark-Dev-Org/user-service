@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
  * taken on trust; it is cross-checked against the stored vehicle record.
  */
 @RestController
-@RequestMapping("/api/v1/users/{userId}/vehicles")
+@RequestMapping("/users/{userId}/vehicles")
 @RequiredArgsConstructor
 public class VehicleController {
 

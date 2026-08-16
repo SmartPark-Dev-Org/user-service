@@ -29,7 +29,7 @@ import static dev.smartpark.userservice.util.AppConstants.API_PREFIX;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthFilter jwtAuthFilter;
+    private final RoleHeaderAuthenticationFilter roleHeaderAuthenticationFilter;
     private final SecurityExceptionHandler securityExceptionHandler;
     private final UserRepository userRepository;
 
@@ -61,7 +61,7 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(roleHeaderAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

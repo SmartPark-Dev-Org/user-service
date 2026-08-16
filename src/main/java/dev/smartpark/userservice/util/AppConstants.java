@@ -6,5 +6,5 @@ public final class AppConstants {
         throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
     }
 
-    public static final String API_PREFIX = "/api/v1/users";
+    public static final String API_PREFIX = "/api/v1";
 }
