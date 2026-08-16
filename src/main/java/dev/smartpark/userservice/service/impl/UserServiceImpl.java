@@ -1,5 +1,7 @@
 package dev.smartpark.userservice.service.impl;
 
+import dev.smartpark.userservice.dto.AuthResponseDTO;
+import dev.smartpark.userservice.dto.LoginRequestDTO;
 import dev.smartpark.userservice.dto.UserRequestDTO;
 import dev.smartpark.userservice.dto.UserResponseDTO;
 import dev.smartpark.userservice.entity.User;
@@ -8,8 +10,12 @@ import dev.smartpark.userservice.exception.DuplicateResourceException;
 import dev.smartpark.userservice.exception.ResourceNotFoundException;
 import dev.smartpark.userservice.repository.UserRepository;
 import dev.smartpark.userservice.service.UserService;
+import dev.smartpark.userservice.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +30,51 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
+    private final JwtUtil jwtUtil;
+
+    @Override
+    public AuthResponseDTO login(LoginRequestDTO request) {
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
+        );
+
+        User user = userRepository.findByUsername(request.getUsername())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        String accessToken = jwtUtil.generateAccessToken(user.getUsername(), user.getRole().name());
+        String refreshToken = jwtUtil.generateRefreshToken(user.getUsername(), user.getRole().name());
+
+        return AuthResponseDTO.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .user(toResponse(user))
+                .build();
+    }
+
+    @Override
+    public AuthResponseDTO refreshToken(String refreshToken) {
+        if (!jwtUtil.isRefreshTokenMathematicallyValid(refreshToken)) {
+            throw new IllegalArgumentException("Invalid refresh token");
+        }
+
+        String username = jwtUtil.extractUsernameFromRefreshToken(refreshToken);
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        if (!user.isActive()) {
+            throw new IllegalArgumentException("User is not active");
+        }
+
+        String newAccessToken = jwtUtil.generateAccessToken(user.getUsername(), user.getRole().name());
+        String newRefreshToken = jwtUtil.generateRefreshToken(user.getUsername(), user.getRole().name());
+
+        return AuthResponseDTO.builder()
+                .accessToken(newAccessToken)
+                .refreshToken(newRefreshToken)
+                .user(toResponse(user))
+                .build();
+    }
 
     @Override
     @Transactional

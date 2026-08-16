@@ -1,5 +1,7 @@
 package dev.smartpark.userservice.service;
 
+import dev.smartpark.userservice.dto.AuthResponseDTO;
+import dev.smartpark.userservice.dto.LoginRequestDTO;
 import dev.smartpark.userservice.dto.UserRequestDTO;
 import dev.smartpark.userservice.dto.UserResponseDTO;
 
@@ -10,6 +12,10 @@ import java.util.List;
  * Implementations must ensure passwords are never included in responses.
  */
 public interface UserService {
+
+    AuthResponseDTO login(LoginRequestDTO request);
+
+    AuthResponseDTO refreshToken(String refreshToken);
 
     UserResponseDTO createUser(UserRequestDTO request);
 
