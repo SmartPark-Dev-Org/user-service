@@ -21,7 +21,7 @@
     <description>SmartPark :: User Service — User management with MySQL (JPA)</description>
 
     <properties>
-        <java.version>25</java.version>
+        <java.version>21</java.version>
         <spring-cloud.version>2024.0.1</spring-cloud.version>
     </properties>
 
