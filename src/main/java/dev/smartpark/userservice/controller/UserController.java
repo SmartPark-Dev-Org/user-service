@@ -14,6 +14,12 @@ import java.util.List;
 /**
  * REST controller for user management.
  * Base path: {@code /api/v1/users}
+ *
+ * <p>Semantic aliases:
+ * <ul>
+ *   <li>POST /register  — public-facing registration alias for POST /</li>
+ *   <li>GET  /profile/{userId} — semantic profile fetch alias for GET /{id}</li>
+ * </ul>
  */
 @RestController
 @RequestMapping("/api/v1/users")
@@ -22,9 +28,38 @@ public class UserController {
 
     private final UserService userService;
 
+    /** POST /api/v1/users — create user (internal / admin use). */
     @PostMapping
     public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody UserRequestDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(request));
+    }
+
+    /**
+     * POST /api/v1/users/register
+     * Public-facing user self-registration endpoint.
+     * Defaults role to ROLE_USER regardless of what is supplied in the payload.
+     */
+    @PostMapping("/register")
+    public ResponseEntity<UserResponseDTO> registerUser(@Valid @RequestBody UserRequestDTO request) {
+        // Force ROLE_USER on self-registration — role elevation must go through admin path
+        UserRequestDTO safeRequest = new UserRequestDTO(
+                request.username(),
+                request.password(),
+                request.email(),
+                request.fullName(),
+                request.phoneNumber(),
+                dev.smartpark.userservice.enums.UserRole.ROLE_USER
+        );
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(safeRequest));
+    }
+
+    /**
+     * GET /api/v1/users/profile/{userId}
+     * Semantic profile endpoint — used by frontend and other services.
+     */
+    @GetMapping("/profile/{userId}")
+    public ResponseEntity<UserResponseDTO> getUserProfile(@PathVariable Long userId) {
+        return ResponseEntity.ok(userService.getUserById(userId));
     }
 
     @GetMapping("/{id}")
