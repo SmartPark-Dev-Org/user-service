@@ -32,7 +32,7 @@ public class AppConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/actuator/**").permitAll()
-                .anyRequest().permitAll()  // TODO: Replace with JWT-based auth
+                .anyRequest().permitAll()
             );
         return http.build();
     }
